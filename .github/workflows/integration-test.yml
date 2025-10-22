@@ -1,4 +1,4 @@
-name: Integration Test - PR #2165
+name: Integration Test - PR 2165
 
 on:
   workflow_dispatch:
@@ -34,6 +34,8 @@ jobs:
     needs: upload-artifacts
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      
       - name: Download all artifacts
         uses: ./
         with:
@@ -56,6 +58,8 @@ jobs:
   test-max-artifact-count:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      
       - name: Create test files
         run: |
           mkdir -p test-data
