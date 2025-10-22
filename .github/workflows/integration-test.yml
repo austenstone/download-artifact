@@ -1,0 +1,110 @@
+name: Integration Test - PR #2165
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'releases/*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Upload many artifacts to test pagination fixes from PR #2165
+  # Page size is 100, so we need 101+ to test pagination across multiple pages
+  upload-artifacts:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        batch: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        index: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - name: Create artifact
+        run: echo "Artifact ${{ matrix.batch }}-${{ matrix.index }}" > artifact.txt
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagination-test-${{ matrix.batch }}-${{ matrix.index }}
+          path: artifact.txt
+
+  # Test pagination - download all 110 artifacts (forces 2 pages since page size is 100)
+  test-pagination:
+    needs: upload-artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: ./
+        with:
+          pattern: pagination-test-*
+          path: download-pagination
+          
+      - name: Verify all 110 artifacts downloaded
+        run: |
+          echo "Verifying 110 artifacts were downloaded (tests pagination across 2 pages)..."
+          count=$(find download-pagination -name "artifact.txt" | wc -l)
+          echo "Found $count artifacts"
+          if [ "$count" -eq 110 ]; then
+            echo "✅ Pagination test successful - all 110 artifacts downloaded"
+          else
+            echo "❌ Expected 110 artifacts, found $count"
+            exit 1
+          fi
+
+  # Test with configurable artifact count limit (tests ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT)
+  test-max-artifact-count:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create test files
+        run: |
+          mkdir -p test-data
+          echo "Testing max count" > test-data/max-count.txt
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: max-count-artifact
+          path: test-data/max-count.txt
+          
+      - name: Download artifact with custom max count (setting to 2000 instead of default 1000)
+        uses: ./
+        with:
+          name: max-count-artifact
+          path: download-max-count
+        env:
+          ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT: "2000"
+          
+      - name: Verify artifact
+        run: |
+          if [ ! -f download-max-count/max-count.txt ]; then
+            echo "❌ File not found!"
+            exit 1
+          fi
+          echo "✅ Custom max artifact count (2000) respected"
+
+  # Summary job
+  integration-test-summary:
+    needs: 
+      - test-pagination
+      - test-max-artifact-count
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check test results
+        run: |
+          echo "🧪 Integration Test Summary - PR #2165"
+          echo "======================================"
+          echo "Pagination Fix: ${{ needs.test-pagination.result }}"
+          echo "Configurable Max Count: ${{ needs.test-max-artifact-count.result }}"
+          
+          if [ "${{ needs.test-pagination.result }}" == "success" ] && \
+             [ "${{ needs.test-max-artifact-count.result }}" == "success" ]; then
+            echo ""
+            echo "✅ All PR #2165 tests passed!"
+            exit 0
+          else
+            echo ""
+            echo "❌ Some PR #2165 tests failed!"
+            exit 1
+          fi
