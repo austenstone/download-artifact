@@ -11,8 +11,6 @@ on:
       - main
 
 jobs:
-  # Upload many artifacts to test pagination fixes from PR #2165
-  # Page size is 100, so we need 101+ to test pagination across multiple pages
   upload-artifacts:
     runs-on: ubuntu-latest
     strategy:
@@ -110,7 +108,7 @@ jobs:
           name: pagination-test-${{ matrix.batch }}-${{ matrix.index }}-10
           path: artifact-10.txt
 
-  # Test pagination - download all 110 artifacts (forces 2 pages since page size is 100)
+  # Test pagination - download all 1,100 artifacts (forces 11 pages since page size is 100)
   test-pagination:
     needs: upload-artifacts
     runs-on: ubuntu-latest
@@ -122,47 +120,25 @@ jobs:
         with:
           pattern: pagination-test-*
           path: download-pagination
-          
-      - name: Verify all 110 artifacts downloaded
-        run: |
-          echo "Verifying 110 artifacts were downloaded (tests pagination across 2 pages)..."
-          count=$(find download-pagination -name "artifact.txt" | wc -l)
-          echo "Found $count artifacts"
-          if [ "$count" -eq 110 ]; then
-            echo "✅ Pagination test successful - all 110 artifacts downloaded"
-          else
-            echo "❌ Expected 110 artifacts, found $count"
-            exit 1
-          fi
-
-  # Test with configurable artifact count limit (tests ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT)
-  test-max-artifact-count:
-    runs-on: ubuntu-latest
-    needs: upload-artifacts
-    steps:
-      - uses: actions/checkout@v4
-          
-      - name: Download artifact with custom max count (setting to 2000 instead of default 1000)
-        uses: ./
-        with:
-          name: max-count-artifact
-          path: download-max-count
         env:
           ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT: "2000"
           
-      - name: Verify artifact
+      - name: Verify all 1,100 artifacts downloaded
         run: |
-          if [ ! -f download-max-count/max-count.txt ]; then
-            echo "❌ File not found!"
+          echo "Verifying 1,100 artifacts were downloaded (tests pagination across 11 pages)..."
+          count=$(find download-pagination -name "artifact-*.txt" | wc -l)
+          echo "Found $count artifacts"
+          if [ "$count" -eq 1100 ]; then
+            echo "✅ Pagination test successful - all 1,100 artifacts downloaded"
+          else
+            echo "❌ Expected 1,100 artifacts, found $count"
             exit 1
           fi
-          echo "✅ Custom max artifact count (2000) respected"
 
   # Summary job
   integration-test-summary:
     needs: 
       - test-pagination
-      - test-max-artifact-count
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -173,8 +149,7 @@ jobs:
           echo "Pagination Fix: ${{ needs.test-pagination.result }}"
           echo "Configurable Max Count: ${{ needs.test-max-artifact-count.result }}"
           
-          if [ "${{ needs.test-pagination.result }}" == "success" ] && \
-             [ "${{ needs.test-max-artifact-count.result }}" == "success" ]; then
+          if [ "${{ needs.test-pagination.result }}" == "success" ]; then
             echo ""
             echo "✅ All PR #2165 tests passed!"
             exit 0
