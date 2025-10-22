@@ -29,6 +29,12 @@ export async function run(): Promise<void> {
     artifactIds: core.getInput(Inputs.ArtifactIds, {required: false})
   }
 
+  core.info(
+    `ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT=${
+      process.env['ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT'] || 'not set'
+    }`
+  )
+
   if (!inputs.path) {
     inputs.path = process.env['GITHUB_WORKSPACE'] || process.cwd()
   }
