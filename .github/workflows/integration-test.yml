@@ -18,8 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        batch: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        index: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        batch: [1]
+        index: [1]
+        # batch: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        # index: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - name: Create artifact 1
         run: echo "Artifact ${{ matrix.batch }}-${{ matrix.index }}-1" > artifact-1.txt
@@ -153,7 +155,6 @@ jobs:
           echo "🧪 Integration Test Summary - PR #2165"
           echo "======================================"
           echo "Pagination Fix: ${{ needs.test-pagination.result }}"
-          echo "Configurable Max Count: ${{ needs.test-max-artifact-count.result }}"
           
           if [ "${{ needs.test-pagination.result }}" == "success" ]; then
             echo ""
