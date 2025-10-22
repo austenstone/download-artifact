@@ -20,14 +20,95 @@ jobs:
         batch: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         index: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
-      - name: Create artifact
-        run: echo "Artifact ${{ matrix.batch }}-${{ matrix.index }}" > artifact.txt
+      - name: Create artifact 1
+        run: echo "Artifact ${{ matrix.batch }}-${{ matrix.index }}-1" > artifact-1.txt
           
-      - name: Upload artifact
+      - name: Upload artifact 1
         uses: actions/upload-artifact@v4
         with:
-          name: pagination-test-${{ matrix.batch }}-${{ matrix.index }}
-          path: artifact.txt
+          name: pagination-test-${{ matrix.batch }}-${{ matrix.index }}-1
+          path: artifact-1.txt
+
+      - name: Create artifact 2
+        run: echo "Artifact ${{ matrix.batch }}-${{ matrix.index }}-2" > artifact-2.txt
+          
+      - name: Upload artifact 2
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagination-test-${{ matrix.batch }}-${{ matrix.index }}-2
+          path: artifact-2.txt
+
+      - name: Create artifact 3
+        run: echo "Artifact ${{ matrix.batch }}-${{ matrix.index }}-3" > artifact-3.txt
+          
+      - name: Upload artifact 3
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagination-test-${{ matrix.batch }}-${{ matrix.index }}-3
+          path: artifact-3.txt
+
+      - name: Create artifact 4
+        run: echo "Artifact ${{ matrix.batch }}-${{ matrix.index }}-4" > artifact-4.txt
+          
+      - name: Upload artifact 4
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagination-test-${{ matrix.batch }}-${{ matrix.index }}-4
+          path: artifact-4.txt
+
+      - name: Create artifact 5
+        run: echo "Artifact ${{ matrix.batch }}-${{ matrix.index }}-5" > artifact-5.txt
+          
+      - name: Upload artifact 5
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagination-test-${{ matrix.batch }}-${{ matrix.index }}-5
+          path: artifact-5.txt
+
+      - name: Create artifact 6
+        run: echo "Artifact ${{ matrix.batch }}-${{ matrix.index }}-6" > artifact-6.txt
+          
+      - name: Upload artifact 6
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagination-test-${{ matrix.batch }}-${{ matrix.index }}-6
+          path: artifact-6.txt
+
+      - name: Create artifact 7
+        run: echo "Artifact ${{ matrix.batch }}-${{ matrix.index }}-7" > artifact-7.txt
+          
+      - name: Upload artifact 7
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagination-test-${{ matrix.batch }}-${{ matrix.index }}-7
+          path: artifact-7.txt
+
+      - name: Create artifact 8
+        run: echo "Artifact ${{ matrix.batch }}-${{ matrix.index }}-8" > artifact-8.txt
+          
+      - name: Upload artifact 8
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagination-test-${{ matrix.batch }}-${{ matrix.index }}-8
+          path: artifact-8.txt
+
+      - name: Create artifact 9
+        run: echo "Artifact ${{ matrix.batch }}-${{ matrix.index }}-9" > artifact-9.txt
+          
+      - name: Upload artifact 9
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagination-test-${{ matrix.batch }}-${{ matrix.index }}-9
+          path: artifact-9.txt
+
+      - name: Create artifact 10
+        run: echo "Artifact ${{ matrix.batch }}-${{ matrix.index }}-10" > artifact-10.txt
+          
+      - name: Upload artifact 10
+        uses: actions/upload-artifact@v4
+        with:
+          name: pagination-test-${{ matrix.batch }}-${{ matrix.index }}-10
+          path: artifact-10.txt
 
   # Test pagination - download all 110 artifacts (forces 2 pages since page size is 100)
   test-pagination:
@@ -57,19 +138,9 @@ jobs:
   # Test with configurable artifact count limit (tests ACTIONS_ARTIFACT_MAX_ARTIFACT_COUNT)
   test-max-artifact-count:
     runs-on: ubuntu-latest
+    needs: upload-artifacts
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Create test files
-        run: |
-          mkdir -p test-data
-          echo "Testing max count" > test-data/max-count.txt
-          
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: max-count-artifact
-          path: test-data/max-count.txt
           
       - name: Download artifact with custom max count (setting to 2000 instead of default 1000)
         uses: ./
